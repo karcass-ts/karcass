@@ -1,12 +1,20 @@
 {
   "name": "karcass",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "CLI tool for creating backend application's skeletons based on Express.js and TypeScript",
   "main": "index.js",
+  "bin": "index.js",
   "scripts": {
     "build": "tsc -p src",
     "watch": "tsc -p src -w"
   },
+  "files": [
+    "index.js",
+    "package.json",
+    "README.md",
+    "template",
+    "dist"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/asyncoders/karcass.git"
@@ -26,9 +34,10 @@
   },
   "homepage": "https://github.com/asyncoders/karcass#readme",
   "dependencies": {
+    "inquirer": "^6.5.0"
+  },
+  "devDependencies": {
     "@types/inquirer": "^6.0.3",
-    "@types/node": "^12.6.8",
-    "inquirer": "^6.5.0",
-    "test": "file:test1"
+    "@types/node": "^12.6.8"
   }
 }
