@@ -1,0 +1,8 @@
+.idea
+.vscode
+*node_modules
+dist
+config.js
+template/dist
+logs
+template/logs

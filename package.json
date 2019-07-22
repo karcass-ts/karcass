@@ -1,0 +1,34 @@
+{
+  "name": "karcass",
+  "version": "0.0.1",
+  "description": "CLI tool for creating backend application's skeletons based on Express.js and TypeScript",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc -p src",
+    "watch": "tsc -p src -w"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/asyncoders/karcass.git"
+  },
+  "keywords": [
+    "skeleton",
+    "express",
+    "typescript",
+    "typeorm",
+    "oop",
+    "backend"
+  ],
+  "author": "Valeriy Shibanov",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/asyncoders/karcass/issues"
+  },
+  "homepage": "https://github.com/asyncoders/karcass#readme",
+  "dependencies": {
+    "@types/inquirer": "^6.0.3",
+    "@types/node": "^12.6.8",
+    "inquirer": "^6.5.0",
+    "test": "file:test1"
+  }
+}
