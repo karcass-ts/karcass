@@ -59,39 +59,43 @@ export class MorphyService extends AbstractService {
         if (!config.useLogger) {
             if (basename === 'Application.ts') {
                 code = code.replace('import { LoggerService } from \'./Logger/Service/LoggerService\';\n', '')
-                code = code.replace('  public loggerService!: LoggerService;\n', '')
-                code = code.replace('    this.loggerService = new LoggerService(this);\n', '')
+                code = code.replace('    public loggerService!: LoggerService;\n', '')
+                code = code.replace('        this.loggerService = new LoggerService(this);\n', '')
             } else if (['config.js', 'config.js.dist'].indexOf(basename) >= 0) {
-                code = code.replace('  logdir: \'logs\',\n', '')
+                code = code.replace('    logdir: \'logs\',\n', '')
             } else if (basename === 'global.d.ts') {
-                code = code.replace('  logdir: string;\n', '')
+                code = code.replace('    logdir: string;\n', '')
             }
         }
         if (!config.useTwing) {
             if (basename === 'Application.ts') {
                 code = code.replace('import { TemplateService } from \'./Template/Service/TemplateService\';\n', '')
-                code = code.replace('  public templateService!: TemplateService;\n', '')
-                code = code.replace('    this.templateService = new TemplateService(this);\n', '')
+                code = code.replace('    public templateService!: TemplateService;\n', '')
+                code = code.replace('        this.templateService = new TemplateService(this);\n', '')
             } else if (basename === 'AbstractController.ts') {
                 code = code.replace(
                     'constructor(protected readonly app: Application, readonly templatesPath?: string) {}',
                     'constructor(protected readonly app: Application) {}',
                 )
-                code = code.replace("  protected render(res: Response, template: string, params: { [key: string]: any } = {}) {\n" +
-                    "    const content = this.app.templateService.render(\n" +
-                    "      this.templatesPath ? path.join(this.templatesPath, template) : template,\n      params,\n    );\n" +
-                    "    return res.send(content);\n  }\n", '')
+                code = code.replace(
+                    "    protected render(res: Response, template: string, params: { [key: string]: any } = {}) {\n" +
+                    "        const content = this.app.templateService.render(\n" +
+                    "            this.templatesPath ? path.join(this.templatesPath, template) : template,\n" +
+                    "            params,\n" +
+                    "        );\n" +
+                    "        return res.send(content);\n" +
+                    "    }\n", '')
             }
         }
         if (!config.useDb) {
             if (basename === 'Application.ts') {
                 code = code.replace('import { DbService } from \'./Database/Service/DbService\';\n', '')
-                code = code.replace('  public dbService!: DbService;\n', '')
-                code = code.replace('    this.dbService = new DbService(this);\n', '')
+                code = code.replace('    public dbService!: DbService;\n', '')
+                code = code.replace('        this.dbService = new DbService(this);\n', '')
             } else if (['config.js', 'config.js.dist'].indexOf(basename) >= 0) {
-                code = code.replace("  db: {\n    name: 'db name',\n    user: 'db user',\n    password: 'db password',\n  },\n", '')
+                code = code.replace("    db: {\n        name: 'db name',\n        user: 'db user',\n        password: 'db password',\n    },\n", '')
             } else if (basename === 'global.d.ts') {
-                code = code.replace("  db: {\n    name: string;\n    user: string;\n    password: string;\n  };\n", '')
+                code = code.replace("    db: {\n        name: string;\n        user: string;\n        password: string;\n    };\n", '')
             }
         }
         if (!config.semicolon) {
