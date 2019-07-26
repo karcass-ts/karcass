@@ -6,33 +6,33 @@ import { MorphyService } from './Create/Service/MorphyService'
 
 export class Application {
 
-  // Commands
-  public helpCommand!: HelpCommand
-  public createCommand!: CreateCommand
+    // Commands
+    public helpCommand!: HelpCommand
+    public createCommand!: CreateCommand
 
-  // Services
-  public morphyService!: MorphyService
+    // Services
+    public morphyService!: MorphyService
 
-  public get rootDir() {
-    return path.dirname(__dirname)
-  }
+    public get rootDir() {
+        return path.dirname(__dirname)
+    }
 
-  public async run() {
-    this.helpCommand = new HelpCommand(this)
-    this.createCommand = new CreateCommand(this)
+    public async run() {
+        this.helpCommand = new HelpCommand(this)
+        this.createCommand = new CreateCommand(this)
 
-    this.morphyService = new MorphyService(this)
+        this.morphyService = new MorphyService(this)
 
-    if (process.argv[2]) {
-        for (const command of Object.values(this).filter((c: any) => c instanceof AbstractConsoleCommand) as AbstractConsoleCommand[]) {
-            if (command.name === process.argv[2]) {
-                await command.execute()
-                process.exit()
+        if (process.argv[2]) {
+            for (const command of Object.values(this).filter((c: any) => c instanceof AbstractConsoleCommand) as AbstractConsoleCommand[]) {
+                if (command.name === process.argv[2]) {
+                    await command.execute()
+                    process.exit()
+                }
             }
         }
+        await this.helpCommand.execute()
+        process.exit()
     }
-    await this.helpCommand.execute()
-    process.exit()
-  }
 
 }
