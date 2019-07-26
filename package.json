@@ -1,6 +1,6 @@
 {
   "name": "karcass",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "CLI tool for creating backend application's skeletons based on Express.js and TypeScript",
   "main": "index.js",
   "bin": "index.js",
