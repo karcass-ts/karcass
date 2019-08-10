@@ -36,6 +36,9 @@ export class MorphyService extends AbstractService {
     }
 
     public morphyFile(srcFile: string, destFile: string, config: IMorphyConfig) {
+        if (destFile.indexOf('.gitignore.template') >= 0) {
+            destFile = destFile.replace('.gitignore.template', '.gitignore')
+        }
         const basename = path.basename(srcFile)
         if (basename === 'package.json') {
             const json = JSON.parse(fs.readFileSync(srcFile).toString())
