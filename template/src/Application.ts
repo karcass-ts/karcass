@@ -18,7 +18,7 @@ export class Application {
 
     // Controllers
 
-    constructor(public readonly config: IConfig) { }
+    public constructor(public readonly config: IConfig) { }
 
     public async run() {
         this.initializeServices();

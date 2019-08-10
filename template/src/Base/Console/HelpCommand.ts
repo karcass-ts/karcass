@@ -3,7 +3,7 @@ import { AbstractConsoleCommand } from './AbstractConsoleCommand';
 
 export class HelpCommand extends AbstractConsoleCommand {
 
-    constructor(app: Application) {
+    public constructor(app: Application) {
         super(app, '--help', 'Show this help');
     }
 

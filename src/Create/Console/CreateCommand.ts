@@ -11,7 +11,7 @@ type ICreateConfig = {
 } & IMorphyConfig
 
 export class CreateCommand extends AbstractConsoleCommand {
-    constructor(app: Application) {
+    public constructor(app: Application) {
         super(app, 'create', 'Creates new project in specified directory', 'create <dir-name>')
     }
 
@@ -34,7 +34,11 @@ export class CreateCommand extends AbstractConsoleCommand {
         if (fs.existsSync(config.directory)) {
             return this.writeLn(`Directory ${config.directory} already exists`, cc.FgRed)
         }
-        config.name = config.directory.toLowerCase().match(/[a-z-_]{1}/g)!.join('')
+        const nameSymbols = config.directory.toLowerCase().match(/[a-z-_]{1}/g)
+        if (!nameSymbols) {
+            return this.writeLn('Incorrect project name', cc.FgRed)
+        }
+        config.name = nameSymbols.join('')
 
         const choice: { type: 'default'|'select' } = await inquirer.prompt({
             name: 'type',
@@ -125,10 +129,13 @@ export class CreateCommand extends AbstractConsoleCommand {
             const pr = exec('cd ' + config.directory + ' ; npm i')
             pr.on('close', resolve)
             pr.on('error', (err) => {
-                console.log(+ err.message)
+                console.log(err.message)
                 resolve()
             })
-            pr.stdout!.on('data', data => console.log(data))
+            if (!pr.stdout) {
+                return this.writeLn('Error: stdout is unavailable')
+            }
+            pr.stdout.on('data', data => console.log(data))
         })
         console.log('Project successfully created.')
         console.log('Available commands:\nnpm run build\nnpm run watch\nnode index.js')

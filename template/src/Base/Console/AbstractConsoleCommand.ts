@@ -30,7 +30,7 @@ export enum ConsoleColors {
 
 export abstract class AbstractConsoleCommand {
 
-    constructor(protected app: Application, public name: string, public description: string, public usage?: string) { }
+    public constructor(protected app: Application, public name: string, public description: string, public usage?: string) { }
 
     public abstract async execute(): Promise<void>;
 

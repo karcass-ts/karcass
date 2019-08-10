@@ -6,7 +6,7 @@ export class LoggerService extends AbstractService {
     public interval?: NodeJS.Timeout;
     public intervalExecuting = false;
 
-    constructor(app: Application) {
+    public constructor(app: Application) {
         super(app);
         this.interval = setInterval(async () => {
             if (this.intervalExecuting) {
@@ -30,7 +30,7 @@ export class LoggerService extends AbstractService {
         console.error(error);
     }
 
-    public async write(message: string | Error | Array<string | Error>, log = 'error') {
+    public async write(message: string | Error | (string|Error)[], log = 'error') {
         const file = await this.getCurrentFilename(log);
         const date = new Date();
         message = Array.isArray(message) ? message : [message];

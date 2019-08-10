@@ -24,7 +24,7 @@ export class AbstractController {
         return this.errorResponse(res, 'access_denied');
     }
 
-    constructor(protected readonly app: Application, readonly templatesPath?: string) { }
+    public constructor(protected readonly app: Application, readonly templatesPath?: string) { }
 
     public jsonResponse(res: Response, data: any = {}) { return AbstractController.jsonResponse(res, data); }
 

@@ -4,7 +4,7 @@ import fs from 'fs';
 
 export class CreateMigrationCommand extends AbstractConsoleCommand {
 
-    constructor(app: Application) {
+    public constructor(app: Application) {
         super(app,
             'migrations:generate',
             'Creates migration with name from argument',

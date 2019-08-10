@@ -6,7 +6,7 @@ import { Connection, createConnection } from 'typeorm';
 export class DbService extends AbstractService {
     public connection!: Connection;
 
-    constructor(app: Application) {
+    public constructor(app: Application) {
         super(app);
 
         createConnection({
@@ -41,7 +41,8 @@ export class DbService extends AbstractService {
             .reduce((result, i) => {
                 return [
                     ...result,
-                    ...fs.readdirSync(i).filter(subi => /\.ts$/.test(subi)).map(subi => `${i.replace('src/', '')}/${subi.replace('.ts', '.js')}`),
+                    ...fs.readdirSync(i).filter(subi => /\.ts$/.test(subi))
+                        .map(subi => `${i.replace('src/', '')}/${subi.replace('.ts', '.js')}`),
                 ];
             }, [] as string[])
             .forEach(async (f) => {

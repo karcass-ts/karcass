@@ -5,7 +5,7 @@ import { Application } from '../../Application';
 export class TemplateService extends AbstractService {
     public twig: TwingEnvironment;
 
-    constructor(app: Application) {
+    public constructor(app: Application) {
         super(app);
         this.twig = new TwingEnvironment(new TwingLoaderFilesystem('./src'));
     }

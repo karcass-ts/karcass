@@ -3,14 +3,14 @@ import { Application } from '../../Application';
 
 export class MigrateUndoCommand extends AbstractConsoleCommand {
 
-    constructor(app: Application) {
+    public constructor(app: Application) {
         super(app, 'migrations:migrate:undo', 'Undoing last migration');
     }
 
     public async execute() {
         await this.app.dbService.onConnect();
         await this.app.dbService.collectMigrations();
-        const migrations = await this.app.dbService.connection.query(`SELECT * FROM migrations`);
+        const migrations = await this.app.dbService.connection.query('SELECT * FROM migrations');
         if (!migrations.length) {
             return console.log('There is no migrations to undo');
         }

@@ -6,7 +6,8 @@
   "bin": "index.js",
   "scripts": {
     "build": "tsc -p src",
-    "watch": "tsc -p src -w"
+    "watch": "tsc -p src -w",
+    "lint": "eslint -c .eslintrc.json --ext .js,.ts src/"
   },
   "files": [
     "index.js",
@@ -38,6 +39,10 @@
   },
   "devDependencies": {
     "@types/inquirer": "^6.0.3",
-    "@types/node": "^12.6.8"
+    "@typescript-eslint/eslint-plugin": "^1.13.0",
+    "@typescript-eslint/parser": "^1.13.0",
+    "eslint": "^6.1.0",
+    "eslint-plugin-react": "^7.14.3",
+    "typescript": "^3.5.3"
   }
 }

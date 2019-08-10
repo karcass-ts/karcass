@@ -4,7 +4,7 @@ import { Migration } from 'typeorm/migration/Migration';
 
 export class MigrateCommand extends AbstractConsoleCommand {
 
-    constructor(app: Application) {
+    public constructor(app: Application) {
         super(app, 'migrations:migrate', 'Perform migrations');
     }
 
