@@ -19,7 +19,6 @@ export class DbService extends AbstractService {
             logging: ['error', 'warn', 'migration'],
         }).then(async (connection) => {
             this.connection = connection;
-            console.log('We are connected to DB');
         }).catch((err: any) => console.error(err));
     }
 
