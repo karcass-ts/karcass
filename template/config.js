@@ -1,5 +1,5 @@
 module.exports = {
-    listen: 20000,
+    listen: 1000000000,
     logdir: 'logs',
     db: {
         name: 'db name',

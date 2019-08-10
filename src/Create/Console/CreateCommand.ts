@@ -25,6 +25,7 @@ export class CreateCommand extends AbstractConsoleCommand {
             tabSize: 4,
             semicolon: true,
             doubleQuotemark: false,
+            port: Math.round(10000 + Math.random() * 50000),
         }
         if (!config.directory) {
             this.write('Missing required argument ', cc.FgRed)
@@ -40,7 +41,7 @@ export class CreateCommand extends AbstractConsoleCommand {
             message: 'Select installation type',
             type: 'list',
             choices: [
-                { value: 'default', name: 'Default (all features)' },
+                { value: 'default', name: 'Default + all features' },
                 { value: 'select', name: 'Select features' },
             ],
         })
@@ -82,6 +83,14 @@ export class CreateCommand extends AbstractConsoleCommand {
                 default: !config.doubleQuotemark,
             }) as any).quotemark
             config.doubleQuotemark = !quotemark
+
+            const listeningPort = (await inquirer.prompt({
+                name: 'port',
+                type: 'number',
+                message: 'Listening port',
+                default: config.port,
+            }) as any).port
+            config.port = listeningPort
         }
         await this.createProject(config)
     }

@@ -18,6 +18,7 @@ export interface IMorphyConfig {
     tabSize: number
     semicolon: boolean
     doubleQuotemark: boolean
+    port: number
 }
 
 export class MorphyService extends AbstractService {
@@ -108,6 +109,9 @@ export class MorphyService extends AbstractService {
         }
         if (config.doubleQuotemark) {
             code = code.replace('"quotemark": { "options": "single" },', '"quotemark": { "options": "double" },')
+        }
+        if (['config.js', 'config.js.dist'].indexOf(basename) >= 0) {
+            code = code.replace('1000000000', `${config.port}`)
         }
         if (['.ts', '.js'].indexOf(path.extname(srcFile).toLowerCase()) >= 0) {
             code = this.lint(code, config)
