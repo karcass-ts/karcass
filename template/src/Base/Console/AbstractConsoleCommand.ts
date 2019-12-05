@@ -52,4 +52,22 @@ export abstract class AbstractConsoleCommand {
         });
     }
 
+    protected hasKey(key: string) {
+        return !!this.getKeyValue(key)
+    }
+
+    protected getKeyValue(key: string): undefined|string|true {
+        for (let k of process.argv.slice(3)) {
+            k = k.trim()
+            if (k.indexOf('--') === 0) {
+                if (k === `--${key}`) {
+                    return true
+                }
+                if (k.indexOf(`--${key}=`) === 0) {
+                    return k.substr(`--${key}=`.length)
+                }
+            }
+        }
+    }
+
 }
