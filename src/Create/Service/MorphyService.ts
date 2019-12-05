@@ -127,6 +127,9 @@ export class MorphyService extends AbstractService {
             code = this.lint(code, config)
         }
         fs.writeFileSync(destFile, code)
+        if (code.indexOf('#!/usr/bin/env node') >= 0) {
+            fs.chmodSync(destFile, '0755')
+        }
     }
 
     public lint(code: string, config: ILintConfig) {
