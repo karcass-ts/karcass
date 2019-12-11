@@ -4,6 +4,9 @@ import { DbService } from './Database/Service/DbService';
 import { HelpCommand } from './Base/Console/HelpCommand';
 import { LoggerService } from './Logger/Service/LoggerService';
 import { TemplateService } from './Template/Service/TemplateService';
+import { CreateMigrationCommand } from './Database/Console/CreateMigrationCommand';
+import { MigrateCommand } from './Database/Console/MigrateCommand';
+import { MigrateUndoCommand } from './Database/Console/MigrateUndoCommand';
 
 export class Application {
     public http!: Express.Express;
@@ -15,6 +18,9 @@ export class Application {
 
     // Commands
     public helpCommand!: HelpCommand;
+    public createMigrationCommand!: CreateMigrationCommand;
+    public migrateCommand!: MigrateCommand;
+    public migrateUndoCommand!: MigrateUndoCommand;
 
     // Controllers
 
@@ -56,6 +62,9 @@ export class Application {
 
     protected initializeCommands() {
         this.helpCommand = new HelpCommand(this);
+        this.createMigrationCommand = new CreateMigrationCommand(this);
+        this.migrateCommand = new MigrateCommand(this);
+        this.migrateUndoCommand = new MigrateUndoCommand(this);
     }
 
     protected initializeControllers() {

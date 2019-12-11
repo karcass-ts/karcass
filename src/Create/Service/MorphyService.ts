@@ -109,6 +109,15 @@ export class MorphyService extends AbstractService {
                 code = code.replace('import { DbService } from \'./Database/Service/DbService\';\n', '')
                 code = code.replace('    public dbService!: DbService;\n', '')
                 code = code.replace('        this.dbService = new DbService(this);\n', '')
+                code = code.replace('import { CreateMigrationCommand } from \'./Database/Console/CreateMigrationCommand\';\n', '')
+                code = code.replace('import { MigrateCommand } from \'./Database/Console/MigrateCommand\';\n', '')
+                code = code.replace('import { MigrateUndoCommand } from \'./Database/Console/MigrateUndoCommand\';\n', '')
+                code = code.replace('    public createMigrationCommand!: CreateMigrationCommand;\n', '')
+                code = code.replace('    public migrateCommand!: MigrateCommand;\n', '')
+                code = code.replace('    public migrateUndoCommand!: MigrateUndoCommand;\n', '')
+                code = code.replace('        this.createMigrationCommand = new CreateMigrationCommand(this);\n', '')
+                code = code.replace('        this.migrateCommand = new MigrateCommand(this);\n', '')
+                code = code.replace('        this.migrateUndoCommand = new MigrateUndoCommand(this);\n', '')
             } else if (['config.js', 'config.js.dist'].indexOf(basename) >= 0) {
                 code = code.replace(
                     '    db: {\n        name: \'db name\',\n        user: \'db user\',\n        password: \'db password\',\n    },\n', '')
