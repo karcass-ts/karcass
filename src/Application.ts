@@ -1,14 +1,10 @@
-import { AbstractConsoleCommand } from './Base/Console/AbstractConsoleCommand'
-import { HelpCommand } from './Base/Console/HelpCommand'
-import { CreateCommand } from './Create/Console/CreateCommand'
+import { CreateCommand } from './CreateCommand'
 import path from 'path'
-import { MorphyService } from './Create/Service/MorphyService'
+import { MorphyService } from './MorphyService'
+import { Cli } from '@karcass/cli'
 
 export class Application {
-
-    // Commands
-    public helpCommand!: HelpCommand
-    public createCommand!: CreateCommand
+    public console = new Cli()
 
     // Services
     public morphyService!: MorphyService
@@ -18,21 +14,8 @@ export class Application {
     }
 
     public async run() {
-        this.helpCommand = new HelpCommand(this)
-        this.createCommand = new CreateCommand(this)
-
-        this.morphyService = new MorphyService(this)
-
-        if (process.argv[2]) {
-            for (const command of Object.values(this).filter((c: any) => c instanceof AbstractConsoleCommand) as AbstractConsoleCommand[]) {
-                if (command.name === process.argv[2]) {
-                    await command.execute()
-                    process.exit()
-                }
-            }
-        }
-        await this.helpCommand.execute()
-        process.exit()
+        this.console.add(CreateCommand, () => new CreateCommand())
+        await this.console.run()
     }
 
 }

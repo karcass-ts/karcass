@@ -30,7 +30,7 @@
         "require-atomic-updates": "off",
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/explicit-function-return-type": "off",
-        "@typescript-eslint/interface-name-prefix": ["error", "always"],
+        "@typescript-eslint/interface-name-prefix": ["error", "never"],
         "@typescript-eslint/no-parameter-properties": "off",
         "@typescript-eslint/member-delimiter-style": "off",
         "no-trailing-spaces": "error",
