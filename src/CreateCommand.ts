@@ -62,6 +62,8 @@ export class CreateCommand extends AbstractConsoleCommand {
             } else {
                 throw new Error(`File ${templateReducerPath}.js does not exists in template, unable to continue`)
             }
+            sourceCode = `let exports = {}; { ${sourceCode} }; exports.TemplateReducer || exports;`
+            console.log(sourceCode)
             const morphyService = new MorphyService(eval(sourceCode))
 
             const processConfigParameters = async (configParameters: ConfigParametersResult) => {
