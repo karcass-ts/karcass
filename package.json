@@ -7,7 +7,7 @@
   "scripts": {
     "build": "rm -Rf dist && tsc -p src",
     "watch": "rm -Rf dist && tsc -p src -w",
-    "lint": "eslint -c .eslintrc.json --ext .js,.ts src/"
+    "lint": "eslint -c .eslintrc.json --ext .js,.ts --fix ./src"
   },
   "files": [
     "index.js",
@@ -36,7 +36,7 @@
   "homepage": "https://github.com/asyncoders/karcass#readme",
   "dependencies": {
     "@karcass/cli": "0.0.3",
-    "@karcass/template-reducer": "0.0.7",
+    "@karcass/template-reducer": "0.0.13",
     "inquirer": "^6.5.0"
   },
   "devDependencies": {
