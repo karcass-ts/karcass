@@ -21,8 +21,12 @@ export class MorphyService {
         return this.templateReducer.getDirectoriesForRemove()
     }
 
-    public getFilesForRemove() {
-        return this.templateReducer.getFilesForRemove()
+    public async getFilesForRemove() {
+        return [
+            'TemplateReducer.ts',
+            'TemplateReducer.js',
+            ... await this.templateReducer.getFilesForRemove(),
+        ]
     }
 
     public updateConfig(configParameter: ConfigParameter, result: any) {
@@ -31,6 +35,10 @@ export class MorphyService {
 
     public getConfig() {
         return this.templateReducer.getConfig()
+    }
+
+    public getTestConfigSet() {
+        return this.templateReducer.getTestConfigSet()
     }
 
     public async morphyFile(content: string, filename: string): Promise<string> {
@@ -48,7 +56,7 @@ export class MorphyService {
                     delete json.devDependencies[dependency]
                 }
             }
-            content = JSON.stringify(json)
+            content = JSON.stringify(json, undefined, 4)
         }
         for (const replacer of await this.getReplacers()) {
             if (replacer.filename instanceof RegExp && replacer.filename.test(filename) || replacer.filename === filename) {

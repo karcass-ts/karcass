@@ -36,12 +36,14 @@
   "homepage": "https://github.com/asyncoders/karcass#readme",
   "dependencies": {
     "@karcass/cli": "0.0.3",
-    "@karcass/template-reducer": "0.0.13",
-    "inquirer": "^6.5.0"
+    "@karcass/template-reducer": "0.0.17",
+    "inquirer": "^6.5.0",
+    "unzipper": "^0.10.8"
   },
   "devDependencies": {
     "@types/inquirer": "^6.0.3",
     "@types/node": "^12.12.14",
+    "@types/unzipper": "^0.10.1",
     "@typescript-eslint/eslint-plugin": "^2.12.0",
     "@typescript-eslint/parser": "^2.12.0",
     "eslint": "^6.7.2",

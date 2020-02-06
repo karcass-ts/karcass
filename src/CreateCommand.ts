@@ -1,4 +1,6 @@
 import { AbstractConsoleCommand, ConsoleColors as cc } from '@karcass/cli'
+import unzip from 'unzipper'
+import http from 'https'
 import * as ts from 'typescript'
 import fs from 'fs'
 import path from 'path'
@@ -7,7 +9,7 @@ import { MorphyService } from './MorphyService'
 import { execSync } from 'child_process'
 import { ConfigParameterType, ConfigParametersResult, TemplateReducerInterface } from '@karcass/template-reducer'
 
-enum SourceType {
+export enum SourceType {
     github = 'github',
     local = 'local',
 }
@@ -22,9 +24,10 @@ export class CreateCommand extends AbstractConsoleCommand {
     public async execute() {
         const originalCwd = process.cwd()
         const config = this.checkBaseConfig()
-        let status: 'check'|'copied'|'done' = 'check'
+        let status: 'check'|'copy'|'copied'|'done' = 'check'
         const cleaner = () => {
-            if (status === 'copied') {
+            if (['copy', 'copied'].includes(status)) {
+                console.log('> Cleanup...')
                 process.chdir(originalCwd)
                 this.deleteDir(config.destination)
             }
@@ -39,60 +42,44 @@ export class CreateCommand extends AbstractConsoleCommand {
 
         try {
             if (config.sourceType === SourceType.local) {
+                status = 'copy'
                 this.copyDir(config.source, config.destination)
+            } else {
+                await this.downloadFromGithub(config.source, config.destination)
             }
             status = 'copied'
             const templateReducerConstructor = this.getTemplateReducer(config.destination)
             const morphyService = new MorphyService(templateReducerConstructor)
 
-            this.writeLn('')
+            console.log('')
             await this.processConfigParameters(morphyService)
-
-            for (const dir of await morphyService.getDirectoriesForRemove()) {
-                this.deleteDir(path.join(config.destination, dir))
-            }
-            for (const file of await morphyService.getFilesForRemove()) {
-                fs.unlinkSync(path.join(config.destination, file))
-            }
-            for (const file of this.getDirFilesFlatten(config.destination)) {
-                const innerFilepath = file.slice(config.destination.length + 1)
-                const originalContent = fs.readFileSync(file).toString()
-                const morphedContent = await morphyService.morphyFile(originalContent, innerFilepath)
-                if (originalContent !== morphedContent) {
-                    fs.writeFileSync(file, morphedContent)
-                }
-            }
-
-            this.writeLn('\nInstalling packages...')
-            this.exec(`cd ${config.destination} && npm install`)
-            process.chdir(config.destination)
-            await morphyService.finish()
+            await this.reduceTemplate(morphyService, config.destination, config.name)
             status = 'done'
         } catch (err) {
-            this.writeLn(err.message, cc.FgRed)
-            process.exit()
+            this.writeLn('> ' + err.message, cc.FgRed)
+            process.exit(1)
         }
     }
 
-    private checkBaseConfig() {
+    protected checkBaseConfig() {
         const config = {
             name: '',
             destination: process.argv[3],
             source: process.argv[4] ? process.argv[4] : 'https://github.com/karcass-ts/template',
         }
         if (!config.destination) {
-            this.write('Missing required argument ', cc.FgRed)
+            this.write('> Missing required argument ', cc.FgRed)
             this.writeLn('<dir-name>', cc.FgYellow)
-            process.exit()
+            process.exit(1)
         }
         if (fs.existsSync(config.destination)) {
-            this.writeLn(`Directory ${config.destination} already exists`, cc.FgRed)
-            process.exit()
+            this.writeLn(`> Directory "${config.destination}" already exists`, cc.FgRed)
+            process.exit(1)
         }
         const nameSymbols = config.destination.toLowerCase().match(/[a-z-_]{1}/g)
         if (!nameSymbols) {
-            this.writeLn('Incorrect project name', cc.FgRed)
-            process.exit()
+            this.writeLn('> Incorrect project name', cc.FgRed)
+            process.exit(1)
         }
         config.name = nameSymbols.join('')
         let sourceType: SourceType
@@ -108,15 +95,74 @@ export class CreateCommand extends AbstractConsoleCommand {
         }
     }
 
-    private deleteDir(destination: string) {
+    protected async reduceTemplate(morphyService: MorphyService, destination: string, projectName: string) {
+        for (const dir of await morphyService.getDirectoriesForRemove()) {
+            if (fs.existsSync(path.join(destination, dir))) {
+                this.deleteDir(path.join(destination, dir))
+            }
+        }
+        for (const file of await morphyService.getFilesForRemove()) {
+            if (fs.existsSync(path.join(destination, file))) {
+                fs.unlinkSync(path.join(destination, file))
+            }
+        }
+        for (const file of this.getDirFilesFlatten(destination)) {
+            const innerFilepath = file.slice(destination.length + 1)
+            let originalContent = fs.readFileSync(file).toString()
+            if (innerFilepath === 'package.json') {
+                const json = JSON.parse(originalContent)
+                json.name = projectName
+                originalContent = JSON.stringify(json, undefined, 4)
+            }
+            const morphedContent = await morphyService.morphyFile(originalContent, innerFilepath)
+            if (originalContent !== morphedContent) {
+                fs.writeFileSync(file, morphedContent)
+            }
+        }
+
+        console.log('\n> Installing packages...')
+        this.exec(`cd ${destination} && npm install`)
+        process.chdir(destination)
+        await morphyService.finish()
+        process.chdir('..')
+    }
+
+    protected async downloadFromGithub(projectUrl: string, destination: string, silent = false) {
+        const githubZipPath = `${projectUrl}/archive/master.zip`
+        if (!silent) {
+            console.log(`> Retreiving ${githubZipPath}...`)
+        }
+        const downloadUrl: string = await new Promise((resolve, reject) => http.get(githubZipPath, res => {
+            if (!res.statusCode || res.statusCode < 300 || res.statusCode > 308) {
+                return reject(new Error('Cannot receive download redirect from github.com'))
+            }
+            resolve(res.headers.location)
+        }))
+        const file: Buffer = await new Promise((resolve, reject) => http.get(downloadUrl, res => {
+            const chunks: any[] = []
+            res.on('data', chunk => {
+                chunks.push(chunk)
+            })
+            res.on('end', () => resolve(Buffer.concat(chunks)))
+            res.on('error', reject)
+        }))
+        await (await unzip.Open.buffer(file)).extract({ path: destination })
+        const unzippedDir = path.join(destination, fs.readdirSync(destination)[0])
+        this.copyDir(unzippedDir, destination, silent)
+        fs.rmdirSync(unzippedDir, { recursive: true })
+    }
+
+    protected deleteDir(destination: string) {
         if (fs.existsSync(destination)) {
             fs.rmdirSync(destination, { recursive: true })
         }
     }
 
-    private copyDir(source: string, destination: string) {
+    protected copyDir(source: string, destination: string, silent = false) {
         try {
-            fs.mkdirSync(destination)
+            if (!fs.existsSync(destination)) {
+                fs.mkdirSync(destination)
+            }
         } catch (err) {
             throw new Error(`Error while creating directory ${destination}: ${err.message}`)
         }
@@ -128,39 +174,45 @@ export class CreateCommand extends AbstractConsoleCommand {
                 continue
             }
             if (fs.statSync(sourceFile).isDirectory()) {
-                this.copyDir(sourceFile, destinationFile)
+                this.copyDir(sourceFile, destinationFile, silent)
                 continue
             }
-            this.write('Copying ')
-            this.writeLn(destinationFile, cc.FgGreen)
+            if (!silent) {
+                this.write('> Copying ')
+                this.writeLn(destinationFile, cc.FgGreen)
+            }
             fs.copyFileSync(sourceFile, destinationFile)
         }
     }
 
-    private getTemplateReducer(destinationDir: string): new () => TemplateReducerInterface {
+    protected getTemplateReducer(destinationDir: string, silent = false): new () => TemplateReducerInterface {
         const templateReducerPath = path.join(destinationDir, 'TemplateReducer')
         let sourceCode: string
         if (fs.existsSync(`${templateReducerPath}.ts`)) {
-            this.write('\nCompiling ')
-            this.write(`${templateReducerPath}.ts`, cc.FgGreen)
-            this.write('... ')
+            if (!silent) {
+                this.write('\n> Transpiling ')
+                this.write(`${templateReducerPath}.ts`, cc.FgGreen)
+                this.write('... ')
+            }
             sourceCode = fs.readFileSync(`${templateReducerPath}.ts`).toString()
             sourceCode = ts.transpile(sourceCode, {
                 target: ts.ScriptTarget.ES2017,
                 module: ts.ModuleKind.CommonJS,
                 esModuleInterop: true,
             })
-            this.writeLn('compiled')
+            if (!silent) {
+                this.writeLn('compiled')
+            }
         } else if (fs.existsSync(`${templateReducerPath}.js`)) {
             sourceCode = fs.readFileSync(`${templateReducerPath}.js`).toString()
         } else {
-            throw new Error(`File ${templateReducerPath}.js does not exists in template, unable to continue`)
+            throw new Error(`> File ${templateReducerPath}.js does not exists in template, unable to continue`)
         }
         sourceCode = `let exports = {}; {\n${sourceCode}\n}; exports.TemplateReducer || exports;`
         return eval(sourceCode)
     }
 
-    private async processConfigParameters(morphyService: MorphyService) {
+    protected async processConfigParameters(morphyService: MorphyService) {
         const process = async (configParameters: ConfigParametersResult) => {
             for (let configParameter of configParameters) {
                 if (typeof configParameter === 'function') {
@@ -200,7 +252,7 @@ export class CreateCommand extends AbstractConsoleCommand {
         return process(await morphyService.getConfigParameters())
     }
 
-    private getDirFilesFlatten(directory: string) {
+    protected getDirFilesFlatten(directory: string) {
         const result: string[] = []
         for (const part of fs.readdirSync(directory)) {
             const filename = path.join(directory, part)
@@ -215,7 +267,7 @@ export class CreateCommand extends AbstractConsoleCommand {
         return result
     }
 
-    private exec(command: string) {
+    protected exec(command: string) {
         execSync(command, {
             stdio: 'inherit',
         })
