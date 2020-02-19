@@ -1,13 +1,16 @@
 {
   "name": "karcass",
-  "version": "0.1.0",
+  "version": "0.1.7",
   "description": "CLI tool for creating backend application's skeletons based on Express.js and TypeScript",
   "main": "index.js",
   "bin": "index.js",
   "scripts": {
     "build": "rm -Rf dist && tsc -p src",
     "watch": "rm -Rf dist && tsc -p src -w",
-    "lint": "eslint -c .eslintrc.json --ext .js,.ts --fix ./src"
+    "lint": "eslint -c .eslintrc.json --ext .js,.ts --fix ./src",
+    "test": "node index.js test",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run lint && npm run test"
   },
   "files": [
     "index.js",
@@ -36,8 +39,9 @@
   "homepage": "https://github.com/asyncoders/karcass#readme",
   "dependencies": {
     "@karcass/cli": "0.0.3",
-    "@karcass/template-reducer": "0.0.17",
+    "@karcass/template-reducer": "0.0.21",
     "inquirer": "^6.5.0",
+    "typescript": "^3.7.5",
     "unzipper": "^0.10.8"
   },
   "devDependencies": {
@@ -47,7 +51,6 @@
     "@typescript-eslint/eslint-plugin": "^2.12.0",
     "@typescript-eslint/parser": "^2.12.0",
     "eslint": "^6.7.2",
-    "eslint-plugin-react": "^7.14.3",
-    "typescript": "^3.5.3"
+    "eslint-plugin-react": "^7.14.3"
   }
 }

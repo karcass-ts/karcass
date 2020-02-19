@@ -1,2 +1,4 @@
-logs
-src
+*
+!dist
+!README.md
+!index.js

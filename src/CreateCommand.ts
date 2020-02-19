@@ -5,7 +5,7 @@ import * as ts from 'typescript'
 import fs from 'fs'
 import path from 'path'
 import inquirer from 'inquirer'
-import { MorphyService } from './MorphyService'
+import { ReducerService } from './ReducerService'
 import { execSync } from 'child_process'
 import { ConfigParameterType, ConfigParametersResult, TemplateReducerInterface } from '@karcass/template-reducer'
 
@@ -49,11 +49,15 @@ export class CreateCommand extends AbstractConsoleCommand {
             }
             status = 'copied'
             const templateReducerConstructor = this.getTemplateReducer(config.destination)
-            const morphyService = new MorphyService(templateReducerConstructor)
+            const reducerService = new ReducerService(
+                templateReducerConstructor,
+                config.name,
+                path.join(originalCwd, config.destination),
+            )
 
             console.log('')
-            await this.processConfigParameters(morphyService)
-            await this.reduceTemplate(morphyService, config.destination, config.name)
+            await this.processConfigParameters(reducerService)
+            await this.reduceTemplate(reducerService, config.destination, config.name)
             status = 'done'
         } catch (err) {
             this.writeLn('> ' + err.message, cc.FgRed)
@@ -65,7 +69,7 @@ export class CreateCommand extends AbstractConsoleCommand {
         const config = {
             name: '',
             destination: process.argv[3],
-            source: process.argv[4] ? process.argv[4] : 'https://github.com/karcass-ts/template',
+            source: process.argv[4] ? process.argv[4] : 'https://github.com/karcass-ts/default-template',
         }
         if (!config.destination) {
             this.write('> Missing required argument ', cc.FgRed)
@@ -95,13 +99,13 @@ export class CreateCommand extends AbstractConsoleCommand {
         }
     }
 
-    protected async reduceTemplate(morphyService: MorphyService, destination: string, projectName: string) {
-        for (const dir of await morphyService.getDirectoriesForRemove()) {
+    protected async reduceTemplate(reducerService: ReducerService, destination: string, projectName: string) {
+        for (const dir of await reducerService.getDirectoriesForRemove()) {
             if (fs.existsSync(path.join(destination, dir))) {
                 this.deleteDir(path.join(destination, dir))
             }
         }
-        for (const file of await morphyService.getFilesForRemove()) {
+        for (const file of await reducerService.getFilesForRemove()) {
             if (fs.existsSync(path.join(destination, file))) {
                 fs.unlinkSync(path.join(destination, file))
             }
@@ -114,16 +118,16 @@ export class CreateCommand extends AbstractConsoleCommand {
                 json.name = projectName
                 originalContent = JSON.stringify(json, undefined, 4)
             }
-            const morphedContent = await morphyService.morphyFile(originalContent, innerFilepath)
-            if (originalContent !== morphedContent) {
-                fs.writeFileSync(file, morphedContent)
+            const reducedContent = await reducerService.reduceFile(originalContent, innerFilepath)
+            if (originalContent !== reducedContent) {
+                fs.writeFileSync(file, reducedContent)
             }
         }
 
         console.log('\n> Installing packages...')
         this.exec(`cd ${destination} && npm install`)
         process.chdir(destination)
-        await morphyService.finish()
+        await reducerService.finish()
         process.chdir('..')
     }
 
@@ -212,11 +216,11 @@ export class CreateCommand extends AbstractConsoleCommand {
         return eval(sourceCode)
     }
 
-    protected async processConfigParameters(morphyService: MorphyService) {
+    protected async processConfigParameters(reducerService: ReducerService) {
         const process = async (configParameters: ConfigParametersResult) => {
             for (let configParameter of configParameters) {
                 if (typeof configParameter === 'function') {
-                    const result = await configParameter(morphyService.getConfig())
+                    const result = await configParameter(reducerService.getConfig())
                     if (!result) {
                         continue
                     }
@@ -238,18 +242,18 @@ export class CreateCommand extends AbstractConsoleCommand {
                             checked: c.checked,
                         })),
                     })
-                    morphyService.updateConfig(configParameter, result[configParameter.name])
+                    reducerService.updateConfig(configParameter, result[configParameter.name])
                 } else {
                     const result = await inquirer.prompt({
                         ...baseOpts,
                         type: configParameter.type as any,
                         default: configParameter.default,
                     })
-                    morphyService.updateConfig(configParameter, result[configParameter.name])
+                    reducerService.updateConfig(configParameter, result[configParameter.name])
                 }
             }
         }
-        return process(await morphyService.getConfigParameters())
+        return process(await reducerService.getConfigParameters())
     }
 
     protected getDirFilesFlatten(directory: string) {

@@ -2,7 +2,7 @@ import { ConsoleColors as cc } from '@karcass/cli'
 import path from 'path'
 import fs from 'fs'
 import { CreateCommand, SourceType } from './CreateCommand'
-import { MorphyService } from './MorphyService'
+import { ReducerService } from './ReducerService'
 import { ConfigParametersResult } from '@karcass/template-reducer'
 
 export class TestCommand extends CreateCommand {
@@ -14,6 +14,8 @@ export class TestCommand extends CreateCommand {
 
     public async execute() {
         const originalCwd = process.cwd()
+
+        process.on('unhandledRejection', err => { throw err })
 
         const config = this.checkBaseConfig()
         const clean = () => {
@@ -41,9 +43,13 @@ export class TestCommand extends CreateCommand {
                     await this.downloadFromGithub(config.source, config.destination, true)
                 }
                 const templateReducerConstructor = this.getTemplateReducer(config.destination, true)
-                const morphyService = new MorphyService(templateReducerConstructor)
+                const reducerService = new ReducerService(
+                    templateReducerConstructor,
+                    config.name,
+                    path.join(originalCwd, config.destination),
+                )
 
-                configSet = await morphyService.getTestConfigSet()
+                configSet = await reducerService.getTestConfigSet()
                 if (!configSet || !configSet.length) {
                     this.writeLn('> The result of TemplateReducer::getTestConfigSet() is empty, nothing to test', cc.FgRed)
                     clean()
@@ -58,12 +64,12 @@ export class TestCommand extends CreateCommand {
                 console.log(`\n=== Testing case ${currentConfigIndex + 1} of ${configSet.length} ===`.toUpperCase())
                 console.log('> Fake user input:')
                 fakeInput = ''
-                await this.processTestConfigParameters(morphyService, configSet[currentConfigIndex], message => {
+                await this.processTestConfigParameters(reducerService, configSet[currentConfigIndex], message => {
                     fakeInput += message + '\n'
                     console.log('  ' + message)
                 })
 
-                await this.reduceTemplate(morphyService, config.destination, config.name)
+                await this.reduceTemplate(reducerService, config.destination, config.name)
 
                 this.deleteDir(config.destination)
                 currentConfigIndex++
@@ -85,14 +91,14 @@ export class TestCommand extends CreateCommand {
     }
 
     protected async processTestConfigParameters(
-        morphyService: MorphyService,
+        reducerService: ReducerService,
         config: Record<string, any>,
         logCallback: (message: string) => void,
     ) {
         const process = async (configParameters: ConfigParametersResult) => {
             for (let configParameter of configParameters) {
                 if (typeof configParameter === 'function') {
-                    const result = await configParameter(morphyService.getConfig())
+                    const result = await configParameter(reducerService.getConfig())
                     if (!result) {
                         continue
                     }
@@ -105,17 +111,17 @@ export class TestCommand extends CreateCommand {
                 }
                 const val = configParameter.name in config ? config[configParameter.name] : undefined
                 logCallback(`${configParameter.description}: ${val}`)
-                morphyService.updateConfig(configParameter, val)
+                reducerService.updateConfig(configParameter, val)
             }
         }
-        return process(await morphyService.getConfigParameters())
+        return process(await reducerService.getConfigParameters())
     }
 
     protected checkBaseConfig() {
         const config = {
             name: '',
             destination: '',
-            source: process.argv[3],
+            source: process.argv[3] ? process.argv[3] : 'https://github.com/karcass-ts/default-template',
             caseNumber: isNaN(Number(process.argv[4])) ? undefined : Number(process.argv[4]),
         }
         let sourceType: SourceType

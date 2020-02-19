@@ -2,7 +2,7 @@
 
 CLI tool for creating skeletons of different types of applications from templates.
 
-The default template is backend application's skeleton based on Express.js and TypeScript.
+The default template is a backend application's skeleton based on Express.js and TypeScript.
 
 ## Usage
 

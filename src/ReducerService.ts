@@ -5,12 +5,16 @@ import {
     ReplaceFileContentItem,
 } from '@karcass/template-reducer'
 
-export class MorphyService {
+export class ReducerService {
     protected templateReducer: TemplateReducerInterface
     protected replacers?: ReplaceFileContentItem[]
 
-    public constructor(templateReducerConstructor: new () => TemplateReducerInterface) {
-        this.templateReducer = new templateReducerConstructor()
+    public constructor(
+        templateReducerConstructor: new (...args: any[]) => TemplateReducerInterface,
+        applicationName: string,
+        directoryPath: string,
+    ) {
+        this.templateReducer = new templateReducerConstructor(applicationName, directoryPath)
     }
 
     public async getConfigParameters(): Promise<ConfigParametersResult> {
@@ -41,7 +45,7 @@ export class MorphyService {
         return this.templateReducer.getTestConfigSet()
     }
 
-    public async morphyFile(content: string, filename: string): Promise<string> {
+    public async reduceFile(content: string, filename: string): Promise<string> {
         if (filename === 'package.json') {
             const dependencies = [
                 '@karcass/template-reducer',
